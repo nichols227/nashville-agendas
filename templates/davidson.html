@@ -1,0 +1,19 @@
+<div>
+	<b>Davidson</b>
+	<table>
+		<th>
+			<tr>
+				<td>Name</td>
+				<td>Date</td>
+				<td>Link</td>
+			</tr>
+		</th>
+		{% for agendaRow in agendaList %}
+			<tr>
+				<td>{{ agendaRow.name }}</td>
+				<td>{{ agendaRow.dateString }}</td>
+				<td><a href="https://nashville.legistar.com/{{ agendaRow.agenda }}" target="_blank">Agenda</a></td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
