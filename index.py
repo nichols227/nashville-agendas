@@ -6,12 +6,25 @@ from datetime import datetime, timedelta
 app = Flask(__name__)
 
 def filterRows(row):
-        today = datetime.now()
-        return row['agenda'] and ((today - timedelta(days=7)) <= row['date'] <= today)
+    today = datetime.now()
+    return row['agenda'] and row['date'] and ((today - timedelta(days=7)) <= row['date'])
+
+def TryCatchStrpTime(dateString):
+    date = ''
+    try:
+        date = datetime.strptime(dateString, '%b %d, %Y')
+    except:
+        try:
+            date = datetime.strptime(dateString, '%B %d, %Y')
+        except:
+            return None
+    return date
+
 
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 @app.route("/davidson")
 def davidson():
@@ -85,6 +98,24 @@ def williamson_schools():
         return {"name": name, "date": date, "dateString": dateString, "agenda": link}
     agendaList = filter(filterRows, map(createRowObject, rows))
     return render_template('williamson_schools.html', agendaList=agendaList)
+
+@app.route("/rutherford_schools")
+def rutherford_schools():
+    source = requests.get('https://www.rcschools.net/apps/pages/index.jsp?uREC_ID=523332&type=d&pREC_ID=2400524').text
+    soup = BeautifulSoup(source, 'html.parser')
+    sections = soup.find_all('ul', class_="attachment-list-public")
+    agendas = sections[0].find_all('a', class_='attachment-type-pdf')
+    minutes = sections[1].find_all('a', class_='attachment-type-pdf')
+    def createRowObject(row, isMinutes=False):
+        title = row.text.split('-')
+        name = title[1 if isMinutes else 0].strip()
+        dateString = title[0 if isMinutes else 1].strip()
+        dateFormat = '%b %d, %Y'
+        date = TryCatchStrpTime(dateString)
+        href = row['href']
+        return {"name": name, "date": date, "dateString": dateString, "agenda": href, "isMinutes": isMinutes}
+    agendaList = filter(filterRows, list(map(createRowObject, agendas)) + list(map(lambda row: createRowObject(row, True), minutes)))
+    return render_template('rutherford_schools.html', agendaList=agendaList)
 
 
 

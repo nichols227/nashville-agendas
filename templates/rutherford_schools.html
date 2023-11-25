@@ -1,6 +1,6 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
 <div>
-	<b>Williamson Schools</b>
+	<b>Rutherford Schools</b>
 	<table class="agendaTable">
 		<th>
 			<tr>
@@ -18,7 +18,13 @@
 					{{ agendaRow.dateString }}
 				</td>
 				<td>
-        			<a href="https://meeting.boeconnect.net{{ agendaRow.agenda }}" target="_blank">Link</a>
+        			<a href="{{ agendaRow.agenda }}" target="_blank">
+        				{% if agendaRow.isMinutes %}
+        					Minutes
+    					{% else %}
+        					Agenda
+    					{% endif %}
+        			</a>
 				</td>
 			<tr>
 			{% endfor %}
