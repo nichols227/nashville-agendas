@@ -2,12 +2,15 @@ from flask import Flask, render_template
 from bs4 import BeautifulSoup
 import requests
 from datetime import datetime, timedelta
+import mechanize
+import json
 
 app = Flask(__name__)
+timeDeltaDays = 7
 
 def filterRows(row):
     today = datetime.now()
-    return row['agenda'] and row['date'] and ((today - timedelta(days=7)) <= row['date'])
+    return row['agenda'] and row['date'] and ((today - timedelta(days=timeDeltaDays)) <= row['date'])
 
 def TryCatchStrpTime(dateString):
     date = ''
@@ -19,6 +22,8 @@ def TryCatchStrpTime(dateString):
         except:
             return None
     return date
+
+outputDateFormat = '%B %d, %Y'
 
 
 @app.route("/")
@@ -117,6 +122,27 @@ def rutherford_schools():
     agendaList = filter(filterRows, list(map(createRowObject, agendas)) + list(map(lambda row: createRowObject(row, True), minutes)))
     return render_template('rutherford_schools.html', agendaList=agendaList)
 
+@app.route("/maury")
+def maury():
+    dateFormat = '%Y-%m-%dT%H:%M:%S'
+    returnedDateFormat = '%Y-%m-%d %H:%M:%S'
+    outputDateFormat = '%m/%d/%Y %I:%M %p'
+    today = datetime.now()
+    start = (today - timedelta(days=timeDeltaDays))
+    requestString = ''
+    groups = requests.get('https://playapi.champds.com/maurycotn/archive/1').json()['ArchiveGroups']
+    overallResponse = []
+    for group in groups:
+        requestString = 'https://playapi.champds.com/maurycotn/archiveGroupDate/{}/LOCAL/{}/{}'.format(group['CustomerArchiveGroupID'], start.strftime(dateFormat), today.strftime(dateFormat))
+        groupResponse = requests.get(requestString).json()
+        def createRowObject(row):    
+            date = row['EventDateTimeLocal']
+            name = row['EventTitle']
+            eventId = row['CustomerEventID']
+            council = group['GroupName']
+            return {"name": name, "dateString": date, "eventId": eventId, "council": council}
+        overallResponse += list(map(createRowObject, groupResponse))
+    return render_template('maury.html', agendaList=overallResponse)
 
 
 

@@ -1,0 +1,23 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+<div>
+	<b>Maury</b>
+	<div>{{ extra }}</div>
+	<table class="agendaTable">
+		<th>
+			<tr>
+				<td>Council</td>
+				<td>Name</td>
+				<td>Date</td>
+				<td>Link</td>
+			</tr>
+		</th>
+		{% for agendaRow in agendaList %}
+			<tr>
+				<td>{{ agendaRow.council }}</td>
+				<td>{{ agendaRow.name }}</td>
+				<td>{{ agendaRow.dateString }}</td>
+				<td><a href="https://play.champds.com/maurycotn/event/{{ agendaRow.eventId }}" target="_blank">Link</a></td>
+			</tr>
+		{% endfor %}
+	</table>
+</div>
